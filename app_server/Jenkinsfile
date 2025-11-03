@@ -29,6 +29,7 @@ pipeline {
             steps {
                 echo "🚀 Deploying Spring + MySQL Dev Environment..."
                 sh """
+                cd ${WORKSPACE}/app_server
                 export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
                 export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
                 export SPRING_IMAGE_NAME=$SPRING_IMAGE_NAME
@@ -51,6 +52,7 @@ pipeline {
             steps {
                 echo "🛑 Stopping Dev Containers..."
                 sh """
+                cd ${WORKSPACE}/app_server
                 export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
                 export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
                 sudo docker-compose stop
@@ -67,6 +69,7 @@ pipeline {
             steps {
                 echo "❌ Removing Dev Containers & Volume..."
                 sh """
+                cd ${WORKSPACE}/app_server
                 export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
                 export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
 
