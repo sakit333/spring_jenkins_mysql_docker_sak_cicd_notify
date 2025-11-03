@@ -58,7 +58,7 @@ pipeline {
                     def isRunning = sh(script: "sudo docker ps -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
                     if (isRunning) {
                         echo "🛑 Stopping container..."
-                        sh "sudo ocker stop ${CONTAINER_NAME}"
+                        sh "sudo docker stop ${CONTAINER_NAME}"
                     } else {
                         echo "⚠️ Container not running. Nothing to stop."
                     }
