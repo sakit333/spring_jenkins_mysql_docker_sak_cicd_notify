@@ -16,8 +16,6 @@ pipeline {
         APP_PORT = "8088"
         SPRING_PROFILE = "dev"
     }
-
-
     stages {
         stage('Deploy Application Dev Environment') {
             when {
@@ -30,14 +28,14 @@ pipeline {
                 echo "🚀 Deploying Spring + MySQL Dev Environment..."
                 sh """
                 cd ${WORKSPACE}/app_server
-                export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
-                export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
-                export SPRING_IMAGE_NAME=$SPRING_IMAGE_NAME
-                export DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
-                export DB_NAME=$DB_NAME
-                export DB_PORT=$DB_PORT
-                export APP_PORT=$APP_PORT
-                export SPRING_PROFILE=$SPRING_PROFILE
+                DB_CONTAINER_NAME=${DB_CONTAINER_NAME} \
+                SPRING_CONTAINER_NAME=${SPRING_CONTAINER_NAME} \
+                SPRING_IMAGE_NAME=${SPRING_IMAGE_NAME} \
+                DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD} \
+                DB_NAME=${DB_NAME} \
+                DB_PORT=${DB_PORT} \
+                APP_PORT=${APP_PORT} \
+                SPRING_PROFILE=${SPRING_PROFILE} \
                 sudo docker-compose up -d --build
                 """
             }
@@ -50,16 +48,22 @@ pipeline {
                 }
             }
             steps {
-                echo "🛑 Stopping Dev Containers..."
+                echo "🛑 Stopping Spring + MySQL Dev Containers..."
                 sh """
                 cd ${WORKSPACE}/app_server
-                export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
-                export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
-                sudo docker-compose stop
+                DB_CONTAINER_NAME=${DB_CONTAINER_NAME} \
+                SPRING_CONTAINER_NAME=${SPRING_CONTAINER_NAME} \
+                SPRING_IMAGE_NAME=${SPRING_IMAGE_NAME} \
+                DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD} \
+                DB_NAME=${DB_NAME} \
+                DB_PORT=${DB_PORT} \
+                APP_PORT=${APP_PORT} \
+                SPRING_PROFILE=${SPRING_PROFILE} \
+                docker-compose stop
                 """
             }
         }
-        stage('Remove Dev Environment') {
+        stage('Terminate Dev Environment') {
             when {
                 allOf {
                     expression { params.ENVIRONMENT == 'dev' }
@@ -67,13 +71,19 @@ pipeline {
                 }
             }
             steps {
-                echo "❌ Removing Dev Containers & Volume..."
+                echo "🔥 Removing Dev Environment (containers + volume)..."
+
                 sh """
                 cd ${WORKSPACE}/app_server
-                export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
-                export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
-
-                sudo docker-compose down -v
+                DB_CONTAINER_NAME=${DB_CONTAINER_NAME} \
+                SPRING_CONTAINER_NAME=${SPRING_CONTAINER_NAME} \
+                SPRING_IMAGE_NAME=${SPRING_IMAGE_NAME} \
+                DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD} \
+                DB_NAME=${DB_NAME} \
+                DB_PORT=${DB_PORT} \
+                APP_PORT=${APP_PORT} \
+                SPRING_PROFILE=${SPRING_PROFILE} \
+                docker-compose down -v
                 """
             }
         }
