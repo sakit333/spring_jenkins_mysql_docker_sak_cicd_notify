@@ -1,53 +1,77 @@
 pipeline {
     agent any
-    tools {
-        maven 'maven'
+
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'prod'], description: 'Select target environment (dev or prod)')
+        choice(name: 'ACTION', choices: ['deploy', 'stop', 'remove'], description: 'Choose action to perform')
     }
 
     environment {
-        IMAGE_NAME = 'spring-app'
-        CONTAINER_NAME = 'spring-app-container'
-        APP_PORT = '8083'
+        DB_CONTAINER_NAME = "sak-mysql-dev"
+        SPRING_CONTAINER_NAME = "sak-spring-dev"
+        SPRING_IMAGE_NAME = "sak-spring-dev"
+        DB_ROOT_PASSWORD = "1234"
+        DB_NAME = "mydb"
+        DB_PORT = "3306"
+        APP_PORT = "8088"
+        SPRING_PROFILE = "dev"
     }
 
+
     stages {
-        stage('Build JAR') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t ${IMAGE_NAME} ."
-            }
-        }
-
-        stage('Run Docker Container If Not Running') {
-            steps {
-                script {
-                    def isRunning = sh(script: "docker ps -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-
-                    if (isRunning) {
-                        echo "🚫 Container '${CONTAINER_NAME}' is already running. Skipping run."
-                    } else {
-                        def exists = sh(script: "docker ps -a -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-                        if (exists) {
-                            echo "🔁 Container exists but not running. Removing it..."
-                            sh "docker rm ${CONTAINER_NAME}"
-                        }
-
-                        echo "🚀 Starting new Docker container..."
-                        sh "docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:8080 ${IMAGE_NAME}"
-                    }
+        stage('Deploy Application Dev Environment') {
+            when {
+                allOf {
+                    expression { params.ENVIRONMENT == 'dev' }
+                    expression { params.ACTION == 'deploy' }
                 }
             }
-        }
-
-        stage('Show Container Status') {
             steps {
-                echo "📦 Current Docker containers:"
-                sh "docker ps -a --filter name=${CONTAINER_NAME}"
+                echo "🚀 Deploying Spring + MySQL Dev Environment..."
+                sh """
+                export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
+                export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
+                export SPRING_IMAGE_NAME=$SPRING_IMAGE_NAME
+                export DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
+                export DB_NAME=$DB_NAME
+                export DB_PORT=$DB_PORT
+                export APP_PORT=$APP_PORT
+                export SPRING_PROFILE=$SPRING_PROFILE
+                sudo docker-compose up -d --build
+                """
+            }
+        }
+        stage('Stop Dev Environment') {
+            when {
+                allOf {
+                    expression { params.ENVIRONMENT == 'dev' }
+                    expression { params.ACTION == 'stop' }
+                }
+            }
+            steps {
+                echo "🛑 Stopping Dev Containers..."
+                sh """
+                export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
+                export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
+                sudo docker-compose stop
+                """
+            }
+        }
+        stage('Remove Dev Environment') {
+            when {
+                allOf {
+                    expression { params.ENVIRONMENT == 'dev' }
+                    expression { params.ACTION == 'remove' }
+                }
+            }
+            steps {
+                echo "❌ Removing Dev Containers & Volume..."
+                sh """
+                export DB_CONTAINER_NAME=$DB_CONTAINER_NAME
+                export SPRING_CONTAINER_NAME=$SPRING_CONTAINER_NAME
+
+                sudo docker-compose down -v
+                """
             }
         }
     }
