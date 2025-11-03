@@ -16,7 +16,9 @@ pipeline {
         APP_PORT = "8088"
         SPRING_PROFILE = "dev"
     }
+
     stages {
+
         stage('Deploy Application Dev Environment') {
             when {
                 allOf {
@@ -36,10 +38,11 @@ pipeline {
                 DB_PORT=${DB_PORT} \
                 APP_PORT=${APP_PORT} \
                 SPRING_PROFILE=${SPRING_PROFILE} \
-                sudo docker-compose up -d --build
+                docker-compose up -d --build
                 """
             }
         }
+
         stage('Stop Dev Environment') {
             when {
                 allOf {
@@ -51,18 +54,11 @@ pipeline {
                 echo "🛑 Stopping Spring + MySQL Dev Containers..."
                 sh """
                 cd ${WORKSPACE}/app_server
-                DB_CONTAINER_NAME=${DB_CONTAINER_NAME} \
-                SPRING_CONTAINER_NAME=${SPRING_CONTAINER_NAME} \
-                SPRING_IMAGE_NAME=${SPRING_IMAGE_NAME} \
-                DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD} \
-                DB_NAME=${DB_NAME} \
-                DB_PORT=${DB_PORT} \
-                APP_PORT=${APP_PORT} \
-                SPRING_PROFILE=${SPRING_PROFILE} \
                 docker-compose stop
                 """
             }
         }
+
         stage('Terminate Dev Environment') {
             when {
                 allOf {
@@ -72,17 +68,8 @@ pipeline {
             }
             steps {
                 echo "🔥 Removing Dev Environment (containers + volume)..."
-
                 sh """
                 cd ${WORKSPACE}/app_server
-                DB_CONTAINER_NAME=${DB_CONTAINER_NAME} \
-                SPRING_CONTAINER_NAME=${SPRING_CONTAINER_NAME} \
-                SPRING_IMAGE_NAME=${SPRING_IMAGE_NAME} \
-                DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD} \
-                DB_NAME=${DB_NAME} \
-                DB_PORT=${DB_PORT} \
-                APP_PORT=${APP_PORT} \
-                SPRING_PROFILE=${SPRING_PROFILE} \
                 docker-compose down -v
                 """
             }
@@ -91,13 +78,13 @@ pipeline {
 
     post {
         success {
-            echo "✅ Spring Boot container is handled successfully."
+            echo "✅ Spring Boot environment handled successfully."
         }
         failure {
-            echo "❌ Something went wrong with the deployment."
+            echo "❌ Deployment failed. Check logs."
         }
         always {
-            echo "ℹ️ Pipeline finished. Check logs above for final status."
+            echo "ℹ️ Pipeline finished."
         }
     }
 }
