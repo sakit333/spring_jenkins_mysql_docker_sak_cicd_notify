@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: sak_mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - sak-dev-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p1234"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  spring-app:
+    image: sak_spring_dev
+    container_name: sak_spring_app_dev
+    restart: always
+    build:
+      context: ./app_server
+      dockerfile: Dockerfile
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    ports:
+      - "8088:8088"
+    networks:
+      - sak-dev-net
+
+volumes:
+  mysql_data:
+
+networks:
+  sak-dev-net:

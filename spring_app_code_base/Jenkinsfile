@@ -7,9 +7,8 @@ pipeline {
     }
 
     environment {
-        DB_CONTAINER_NAME = "sak-mysql-dev"
-        SPRING_CONTAINER_NAME = "sak-spring-dev"
         SPRING_IMAGE_NAME = "sak-spring-dev"
+        SPRING_CONTAINER_NAME = "sak-spring-dev"
         DB_ROOT_PASSWORD = "1234"
         DB_NAME = "mydb"
         DB_PORT = "3306"

@@ -13,7 +13,7 @@ COPY .mvn .mvn
 COPY src ./src
 
 # Build application (skip tests for faster builds, enable tests in CI)
-RUN mvn -B -DskipTests package
+RUN mvn clean -DskipTests package
 
 # === Stage 2: Runtime Image ===
 FROM eclipse-temurin:17-jre-jammy

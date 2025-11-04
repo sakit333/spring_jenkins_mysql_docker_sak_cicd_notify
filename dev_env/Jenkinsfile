@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+
+    environment {
+        PROJECT_NAME = 'SakApp'
+    }
+
+    stages {
+        stage('Docker check'){
+            steps {
+                script {
+                    def dockerExists = sh(script: 'which docker', returnStatus: true) == 0
+                    if (!dockerExists) {
+                        error "Docker is not installed or not found in PATH."
+                    } else {
+                        echo "Docker is installed."
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
