@@ -1,20 +1,38 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'ACTION', choices: ['DEPLOY', 'REMOVE'], description: 'Choose action to perform')
+    }
+
     environment {
         PROJECT_NAME = 'SakApp'
+        DOCKER_COMPOSE_DIR = "dev_env"
     }
 
     stages {
-        stage('Docker check'){
+        stage('Deploy Application in DEV Environment') {
+            when {
+                expression { return params.ACTION == 'DEPLOY' }
+            }
             steps {
-                script {
-                    def dockerExists = sh(script: 'which docker', returnStatus: true) == 0
-                    if (!dockerExists) {
-                        error "Docker is not installed or not found in PATH."
-                    } else {
-                        echo "Docker is installed."
-                    }
+                echo "Deploying DEV environment..."
+
+                dir("${DOCKER_COMPOSE_DIR}") {
+                    sh "docker compose build"
+                    sh "docker compose up -d"
+                }
+            }
+        }
+        stage('Remove Application in DEV Environment') {
+            when {
+                expression { return params.ACTION == 'REMOVE' }
+            }
+            steps {
+                echo "Removing DEV environment..."
+
+                dir("${DOCKER_COMPOSE_DIR}") {
+                    sh "docker compose down --remove-orphans"
                 }
             }
         }
